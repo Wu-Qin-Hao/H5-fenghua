@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+    <meta name="keywords" content="西溪风华">
+    <title>西溪风华</title>
+    <link rel="stylesheet" type="text/css" href="h5.css">
+</head>
+<body>
+<div id="main">
+    <canvas id="canvas"></canvas>
+    <div id="text">
+        <img class="text_img" src="img/effect/text_01.png">
+    </div>
+    <div id="gradually">
+        <img class="logo" src="img/effect/logo.png">
+    </div>
+    <div class="butterfly">
+        <img src="img/BUTTERFLY_2/BUTTERFLY_2_00000.png" id="butt">
+    </div>
+    <div class="button" id="pc_click"></div>
+    <div class="touch">
+        <div id="phone_touch"></div>
+        <span>请长按观看</span>
+    </div>
+    <i class="control" onclick="playPause()"></i>
+    <audio id="audio1" preload="auto" loop="loop">
+        <source src="music/music.mp3" type="audio/mpeg" />
+    </audio>
+</div>
+<div class="vertical">
+    <span>请切换横屏状态</span>
+</div>
+<script src="lib/jquery-3.1.0.min.js"></script>
+<script type="text/javascript">
+
+    //控制音乐播放
+    var myAudio = document.getElementById('audio1');
+    function playPause(){
+        if(myAudio.paused){
+            myAudio.play();
+            $(".control").css("background","url('music/open.png') no-repeat");
+        }else{
+            myAudio.pause();
+            $(".control").css("background","url('music/down.png') no-repeat");
+        }
+    }
+
+    //页面加载时调用
+    $(function () {
+        orient();
+        background();
+    });
+    //用户变化屏幕方向时调用
+    $(window).bind('orientationchange', function (e) {
+        orient();
+        //解决微信浏览器无法使用window.location.reload()刷新页面
+        window.location.href=window.location.href+"?id="+10000*Math.random();
+    });
+
+    //检测手机横竖屏
+    function orient() {
+        if (window.orientation == 90 || window.orientation == -90) {
+            $("#main").show();
+        }
+        else if (window.orientation == 0 || window.orientation == 180) {
+            $("#main").hide();
+            myAudio.pause();
+        }
+    }
+
+
+
+    var w = window.document.body.clientWidth;
+    var h = window.document.body.clientHeight;
+    var img_w = 12868;
+    var img_h = 600;
+    //背景图片
+    function background() {
+
+
+        var canvas = $("#canvas")[0];
+        canvas.width = w;
+        canvas.height = h;
+
+
+        var ctx = canvas.getContext("2d");
+        var bgimg = new Image();
+        bgimg.src = "img/effect/background_a.jpg";
+        bgimg.onload = function () {
+            ctx.drawImage(bgimg, 0, 0, img_w, img_h, left, 0, img_w*((canvas.height+20)/img_h), canvas.height);
+
+            $('.text_img').css('height', 0.7 * canvas.height);
+            $('.logo').css('height', 0.7 * canvas.height);
+            $('#gradually').css('left', parseInt(w/3)).fadeIn(3000);
+            butterfly(w);
+
+            bw = parseInt($('.butterfly').css('width'));
+
+            imw = parseInt($('.text_img').css('width'));
+
+            grw = parseInt($('.logo').css('width'));
+
+        };
+
+
+        var left = 0;
+
+        var left_logo = parseInt(w/3);
+        var left_but = parseInt(w/1.5);
+
+        //判断是否是手机
+        if (navigator.userAgent.match(/(iPhone|iPad|iPod|Android|ios)/i)) {
+            $('.button').fadeOut();
+            $(".touch").fadeIn();
+        } else {
+            $('.button').fadeIn();
+            $(".touch").fadeOut();
+        }
+
+        var i = 1;
+        var bw = 0;
+        var imw = 0;
+        var grw = 0;
+        var top = 0;
+        var flag = true;
+        var faw = 0;
+
+
+        console.log(img_w);
+        var timer;
+        $('#pc_click').on('mousedown', function (e) {
+            e.preventDefault();
+            timer = setInterval(rebgimg,10);
+        });
+        $('#pc_click').on('mouseup', function (e) {
+            e.preventDefault();
+            clearInterval(timer);
+        });
+        $('#phone_touch').on('touchstart', function (e) {
+            e.preventDefault();
+            timer = setInterval(rebgimg,10);
+            myAudio.play();
+        });
+        $('#phone_touch').on('touchend', function (e) {
+            e.preventDefault();
+            clearInterval(timer);
+        });
+
+        //背景图移动
+        function rebgimg() {
+
+            if ($("#text_024").length == 0) {
+
+                left -= 1;
+
+                ctx.clearRect(0, 0, img_w , canvas.height);
+
+                console.log("移"+left);
+                console.log("停"+img_w);
+
+                ctx.drawImage(bgimg, 0, 0, img_w , img_h, left, 0, img_w *((canvas.height+20)/img_h), canvas.height);
+
+                if (left < 0) {
+                    left_logo -= 1.5;
+                    $('#gradually').css('left', left_logo);
+                }
+
+                /*让第一张图片出来*/
+                if (left == (-grw) && flag == true) {
+
+                    $('.text_img').css('left', (left_but*0.5)).fadeIn();
+                    faw = left_but;
+                    flag = false;
+                }
+
+                /*让图片移动*/
+                $('#text>img').each(function () {
+                    var l = parseInt($(this).css('left'));
+                    l -= 1;
+                    $(this).css('left', l);
+                    if (l < -(imw * 3)) {
+                        $(this).remove();
+                    }
+                });
+
+                //最后一张图片的位置
+                var lasw = parseInt($('#text>img:last-child').css('left'));
+
+                if (i <24) {
+
+                    if (i == 23) {
+                        if ((faw - lasw) > (1.8*imw) || $('#text>img').length == 0) {
+                            var img1 = '<img class="text_img" id="text_0'+(i+1)+'" src="img/effect/text_0' + (i + 1) + '.png">';
+                            if ($('#text>img').length > 0) {
+                                $('#text>img:last-child').after(img1);
+                            } else {
+                                $('#text').html(img1);
+                            }
+
+                            $('#text>img:last-child').css('top',10).css('left', left_but*0.7).css('height',h).fadeIn(3000);
+                            faw = left_but;
+                            i++;
+                        }
+                    } else {
+                        if ((faw - lasw) > imw || $('#text>img').length == 0) {
+                            var img1 = '<img class="text_img" id="text_0' + (i + 1) + '" src="img/effect/text_0' + (i + 1) + '.png">';
+                            if ($('#text>img').length > 0) {
+                                $('#text>img:last-child').after(img1);
+                            } else {
+                                $('#text').html(img1);
+                            }
+
+                            console.log("看看" + left_but);
+                            if (i == 7) {
+                                $('#text>img:last-child').css('top', 10).css('left', left_but * 1.5).css('height', 0.7 * h).fadeIn(3000);
+                            } else if (i == 14) {
+                                $('#text>img:last-child').css('top', 10).css('left', left_but * 1.3).css('height', 0.7 * h).fadeIn(3000);
+                            } else if (i == 15) {
+                                $('#text>img:last-child').css('top', 10).css('left', left_but * 1.5).css('height', 0.7 * h).fadeIn(3000);
+                            } else if (i == 19) {
+                                $('#text>img:last-child').css('top', 10).css('left', left_but * 1.5).css('height', 0.7 * h).fadeIn(3000);
+                            } else if (i == 21) {
+                                $('#text>img:last-child').css('top', 80).css('left', left_but * 1.5).css('height', 0.4 * h).fadeIn(3000);
+                            } else if (i == 22) {
+                                $('#text>img:last-child').css('top', 50).css('left', left_but * 1.5).css('height', 0.7 * h).fadeIn(3000);
+                            } else {
+                                $('#text>img:last-child').css('top', 10).css('left', left_but).css('height', 0.7 * h).fadeIn(3000);
+                            }
+                            faw = left_but;
+                            i++;
+                            console.log(i);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //蝴蝶飞动
+    function butterfly(w) {
+        $('.butterfly').css('left', parseInt(w / 2)).fadeIn();
+        var n = 0;
+        setInterval(function () {
+            if (n == 9) {
+                n = 0;
+            } else {
+                n++
+            }
+            var img = 'img/BUTTERFLY_2/BUTTERFLY_2_0000' + n + '.png';
+            $('#butt').attr('src', img);
+        }, 100);
+    }
+
+</script>
+</body>
+</html>
